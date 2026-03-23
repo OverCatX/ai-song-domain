@@ -11,9 +11,18 @@ from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
 from .models import (
-    GenerationStatus, Occasion, MoodTone, SingerTone,
-    User, Song, Library, SongPrompt,
-    AIGenerationRequest, SharedSong, PlaybackSession, Draft,
+    GenerationStatus,
+    Occasion,
+    MoodTone,
+    SingerTone,
+    User,
+    Song,
+    Library,
+    SongPrompt,
+    AIGenerationRequest,
+    SharedSong,
+    PlaybackSession,
+    Draft,
 )
 
 
@@ -21,16 +30,17 @@ from .models import (
 # Helpers
 # ---------------------------------------------------------------------------
 
-def make_user(email='test@example.com', display_name='Test User'):
+
+def make_user(email="test@example.com", display_name="Test User"):
     return User.objects.create(
-        google_id=f'google_{email}',
+        google_id=f"google_{email}",
         email=email,
         display_name=display_name,
-        session_token='tok123',
+        session_token="tok123",
     )
 
 
-def make_song(user, title='My Song'):
+def make_song(user, title="My Song"):
     return Song.objects.create(
         user=user,
         title=title,
@@ -41,11 +51,11 @@ def make_song(user, title='My Song'):
 def make_prompt(song):
     return SongPrompt.objects.create(
         song=song,
-        title='A Birthday Song',
+        title="A Birthday Song",
         occasion=Occasion.BIRTHDAY,
         mood_and_tone=MoodTone.HAPPY,
         singer_tone=SingerTone.FEMALE_LIGHT,
-        description='For my best friend.',
+        description="For my best friend.",
     )
 
 
@@ -53,29 +63,31 @@ def make_prompt(song):
 # Enumeration tests
 # ---------------------------------------------------------------------------
 
+
 class EnumerationTests(TestCase):
 
     def test_generation_status_values(self):
-        expected = {'IN_PROGRESS', 'COMPLETED', 'FAILED', 'DRAFT'}
+        expected = {"IN_PROGRESS", "COMPLETED", "FAILED", "DRAFT"}
         actual = {c.value for c in GenerationStatus}
         self.assertEqual(actual, expected)
 
     def test_occasion_values(self):
-        expected = {'BIRTHDAY', 'WEDDING', 'ANNIVERSARY', 'GRADUATION', 'GENERAL'}
+        expected = {"BIRTHDAY", "WEDDING", "ANNIVERSARY", "GRADUATION", "GENERAL"}
         self.assertEqual({c.value for c in Occasion}, expected)
 
     def test_mood_tone_values(self):
-        expected = {'HAPPY', 'SAD', 'ROMANTIC', 'ENERGETIC', 'CALM'}
+        expected = {"HAPPY", "SAD", "ROMANTIC", "ENERGETIC", "CALM"}
         self.assertEqual({c.value for c in MoodTone}, expected)
 
     def test_singer_tone_values(self):
-        expected = {'MALE_DEEP', 'MALE_LIGHT', 'FEMALE_DEEP', 'FEMALE_LIGHT', 'NEUTRAL'}
+        expected = {"MALE_DEEP", "MALE_LIGHT", "FEMALE_DEEP", "FEMALE_LIGHT", "NEUTRAL"}
         self.assertEqual({c.value for c in SingerTone}, expected)
 
 
 # ---------------------------------------------------------------------------
 # User CRUD
 # ---------------------------------------------------------------------------
+
 
 class UserTests(TestCase):
 
@@ -85,20 +97,20 @@ class UserTests(TestCase):
         self.assertIsNotNone(user.user_id)
 
     def test_user_email_unique(self):
-        make_user(email='same@example.com')
+        make_user(email="same@example.com")
         with self.assertRaises(IntegrityError):
-            make_user(email='same@example.com')
+            make_user(email="same@example.com")
 
     def test_user_google_id_unique(self):
-        User.objects.create(google_id='gid1', email='a@x.com', display_name='A')
+        User.objects.create(google_id="gid1", email="a@x.com", display_name="A")
         with self.assertRaises(IntegrityError):
-            User.objects.create(google_id='gid1', email='b@x.com', display_name='B')
+            User.objects.create(google_id="gid1", email="b@x.com", display_name="B")
 
     def test_update_user(self):
         user = make_user()
-        user.display_name = 'Updated Name'
+        user.display_name = "Updated Name"
         user.save()
-        self.assertEqual(User.objects.get(pk=user.pk).display_name, 'Updated Name')
+        self.assertEqual(User.objects.get(pk=user.pk).display_name, "Updated Name")
 
     def test_delete_user_cascades_songs(self):
         user = make_user()
@@ -110,6 +122,7 @@ class UserTests(TestCase):
 # ---------------------------------------------------------------------------
 # Song CRUD & constraints
 # ---------------------------------------------------------------------------
+
 
 class SongTests(TestCase):
 
@@ -124,11 +137,11 @@ class SongTests(TestCase):
 
     def test_song_share_link_optional(self):
         song = make_song(self.user)
-        self.assertEqual(song.share_link, '')
+        self.assertEqual(song.share_link, "")
 
     def test_song_audio_url_optional(self):
         song = make_song(self.user)
-        self.assertEqual(song.audio_file_url, '')
+        self.assertEqual(song.audio_file_url, "")
 
     def test_update_generation_status(self):
         song = make_song(self.user)
@@ -150,6 +163,7 @@ class SongTests(TestCase):
 # Library – User owns one Library (1..1), contains Songs (0..*)
 # ---------------------------------------------------------------------------
 
+
 class LibraryTests(TestCase):
 
     def setUp(self):
@@ -167,20 +181,20 @@ class LibraryTests(TestCase):
 
     def test_library_contains_songs(self):
         lib = Library.objects.create(user=self.user)
-        song1 = make_song(self.user, 'Song A')
-        song2 = make_song(self.user, 'Song B')
+        song1 = make_song(self.user, "Song A")
+        song2 = make_song(self.user, "Song B")
         lib.songs.add(song1, song2)
         self.assertEqual(lib.songs.count(), 2)
 
     def test_sync_total_count(self):
         lib = Library.objects.create(user=self.user)
-        lib.songs.add(make_song(self.user, 'S1'), make_song(self.user, 'S2'))
+        lib.songs.add(make_song(self.user, "S1"), make_song(self.user, "S2"))
         lib.sync_total_count()
         self.assertEqual(Library.objects.get(pk=lib.pk).total_count, 2)
 
     def test_library_filter_criteria_optional(self):
         lib = Library.objects.create(user=self.user)
-        self.assertEqual(lib.filter_criteria, '')
+        self.assertEqual(lib.filter_criteria, "")
 
     def test_delete_user_cascades_library(self):
         Library.objects.create(user=self.user)
@@ -191,6 +205,7 @@ class LibraryTests(TestCase):
 # ---------------------------------------------------------------------------
 # SongPrompt – defines Song (1..1)
 # ---------------------------------------------------------------------------
+
 
 class SongPromptTests(TestCase):
 
@@ -208,7 +223,7 @@ class SongPromptTests(TestCase):
         with self.assertRaises(IntegrityError):
             SongPrompt.objects.create(
                 song=self.song,
-                title='Duplicate',
+                title="Duplicate",
                 occasion=Occasion.GENERAL,
                 mood_and_tone=MoodTone.CALM,
                 singer_tone=SingerTone.NEUTRAL,
@@ -221,13 +236,14 @@ class SongPromptTests(TestCase):
 
     def test_reverse_accessor(self):
         make_prompt(self.song)
-        self.assertTrue(hasattr(self.song, 'prompt'))
+        self.assertTrue(hasattr(self.song, "prompt"))
         self.assertEqual(self.song.prompt.occasion, Occasion.BIRTHDAY)
 
 
 # ---------------------------------------------------------------------------
 # AIGenerationRequest – SongPrompt triggers request (1..1)
 # ---------------------------------------------------------------------------
+
 
 class AIGenerationRequestTests(TestCase):
 
@@ -239,7 +255,7 @@ class AIGenerationRequestTests(TestCase):
     def test_create_request(self):
         req = AIGenerationRequest.objects.create(prompt=self.prompt)
         self.assertEqual(req.status, GenerationStatus.IN_PROGRESS)
-        self.assertEqual(req.error_message, '')
+        self.assertEqual(req.error_message, "")
 
     def test_request_prompt_one_to_one(self):
         AIGenerationRequest.objects.create(prompt=self.prompt)
@@ -248,16 +264,16 @@ class AIGenerationRequestTests(TestCase):
 
     def test_error_message_optional(self):
         req = AIGenerationRequest.objects.create(prompt=self.prompt)
-        self.assertEqual(req.error_message, '')
+        self.assertEqual(req.error_message, "")
 
     def test_status_transitions(self):
         req = AIGenerationRequest.objects.create(prompt=self.prompt)
         req.status = GenerationStatus.FAILED
-        req.error_message = 'Timeout from AI service'
+        req.error_message = "Timeout from AI service"
         req.save()
         refreshed = AIGenerationRequest.objects.get(pk=req.pk)
         self.assertEqual(refreshed.status, GenerationStatus.FAILED)
-        self.assertIn('Timeout', refreshed.error_message)
+        self.assertIn("Timeout", refreshed.error_message)
 
     def test_delete_prompt_cascades_request(self):
         AIGenerationRequest.objects.create(prompt=self.prompt)
@@ -269,6 +285,7 @@ class AIGenerationRequestTests(TestCase):
 # SharedSong – Song produces SharedSong (0..1)
 # ---------------------------------------------------------------------------
 
+
 class SharedSongTests(TestCase):
 
     def setUp(self):
@@ -278,28 +295,26 @@ class SharedSongTests(TestCase):
     def test_create_shared_song(self):
         shared = SharedSong.objects.create(
             song=self.song,
-            share_link='https://aisong.example.com/share/abc123',
+            share_link="https://aisong.example.com/share/abc123",
         )
         self.assertFalse(shared.accessible_by_guest)
         self.assertIsNotNone(shared.shared_at)
 
     def test_song_shared_song_one_to_one(self):
-        SharedSong.objects.create(
-            song=self.song, share_link='https://example.com/1'
-        )
+        SharedSong.objects.create(song=self.song, share_link="https://example.com/1")
         with self.assertRaises(IntegrityError):
             SharedSong.objects.create(
-                song=self.song, share_link='https://example.com/2'
+                song=self.song, share_link="https://example.com/2"
             )
 
     def test_share_link_unique(self):
-        song2 = make_song(self.user, 'Other Song')
-        SharedSong.objects.create(song=self.song, share_link='https://example.com/same')
+        song2 = make_song(self.user, "Other Song")
+        SharedSong.objects.create(song=self.song, share_link="https://example.com/same")
         with self.assertRaises(IntegrityError):
-            SharedSong.objects.create(song=song2, share_link='https://example.com/same')
+            SharedSong.objects.create(song=song2, share_link="https://example.com/same")
 
     def test_delete_song_cascades_shared_song(self):
-        SharedSong.objects.create(song=self.song, share_link='https://example.com/x')
+        SharedSong.objects.create(song=self.song, share_link="https://example.com/x")
         self.song.delete()
         self.assertEqual(SharedSong.objects.count(), 0)
 
@@ -307,6 +322,7 @@ class SharedSongTests(TestCase):
 # ---------------------------------------------------------------------------
 # PlaybackSession – Song played via PlaybackSession (0..1 per Song)
 # ---------------------------------------------------------------------------
+
 
 class PlaybackSessionTests(TestCase):
 
@@ -332,7 +348,7 @@ class PlaybackSessionTests(TestCase):
         session = PlaybackSession.objects.create(current_position=0.0)
         song = Song.objects.create(
             user=self.user,
-            title='Playing Now',
+            title="Playing Now",
             playback_session=session,
         )
         self.assertEqual(song.playback_session, session)
@@ -341,7 +357,7 @@ class PlaybackSessionTests(TestCase):
     def test_delete_session_nullifies_song_reference(self):
         session = PlaybackSession.objects.create(current_position=0.0)
         song = Song.objects.create(
-            user=self.user, title='Track', playback_session=session
+            user=self.user, title="Track", playback_session=session
         )
         session.delete()
         song.refresh_from_db()
@@ -352,6 +368,7 @@ class PlaybackSessionTests(TestCase):
 # Draft – Song saved as Draft (0..*)
 # ---------------------------------------------------------------------------
 
+
 class DraftTests(TestCase):
 
     def setUp(self):
@@ -359,9 +376,9 @@ class DraftTests(TestCase):
         self.song = make_song(self.user)
 
     def test_create_draft(self):
-        draft = Draft.objects.create(song=self.song, retention_policy='30_DAYS')
+        draft = Draft.objects.create(song=self.song, retention_policy="30_DAYS")
         self.assertFalse(draft.is_submitted)
-        self.assertEqual(draft.retention_policy, '30_DAYS')
+        self.assertEqual(draft.retention_policy, "30_DAYS")
 
     def test_multiple_drafts_per_song(self):
         Draft.objects.create(song=self.song)

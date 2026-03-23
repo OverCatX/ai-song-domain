@@ -9,114 +9,329 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='PlaybackSession',
+            name="PlaybackSession",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('session_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('current_position', models.FloatField(default=0.0, help_text='Playback position in seconds')),
-                ('loop_start', models.FloatField(blank=True, help_text='Loop start in seconds', null=True)),
-                ('loop_end', models.FloatField(blank=True, help_text='Loop end in seconds', null=True)),
-                ('equalizer_settings', models.CharField(blank=True, max_length=500)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "session_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                (
+                    "current_position",
+                    models.FloatField(
+                        default=0.0, help_text="Playback position in seconds"
+                    ),
+                ),
+                (
+                    "loop_start",
+                    models.FloatField(
+                        blank=True, help_text="Loop start in seconds", null=True
+                    ),
+                ),
+                (
+                    "loop_end",
+                    models.FloatField(
+                        blank=True, help_text="Loop end in seconds", null=True
+                    ),
+                ),
+                ("equalizer_settings", models.CharField(blank=True, max_length=500)),
             ],
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('google_id', models.CharField(max_length=255, unique=True)),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('display_name', models.CharField(max_length=255)),
-                ('session_token', models.CharField(blank=True, max_length=500)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "user_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("google_id", models.CharField(max_length=255, unique=True)),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                ("display_name", models.CharField(max_length=255)),
+                ("session_token", models.CharField(blank=True, max_length=500)),
             ],
             options={
-                'ordering': ['display_name'],
+                "ordering": ["display_name"],
             },
         ),
         migrations.CreateModel(
-            name='Song',
+            name="Song",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('song_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('title', models.CharField(max_length=255)),
-                ('audio_file_url', models.URLField(blank=True)),
-                ('generation_status', models.CharField(choices=[('IN_PROGRESS', 'In Progress'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed'), ('DRAFT', 'Draft')], default='DRAFT', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('is_favorite', models.BooleanField(default=False)),
-                ('is_draft', models.BooleanField(default=True)),
-                ('share_link', models.URLField(blank=True)),
-                ('playback_session', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='songs', to='songs.playbacksession')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='songs', to='songs.user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "song_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("audio_file_url", models.URLField(blank=True)),
+                (
+                    "generation_status",
+                    models.CharField(
+                        choices=[
+                            ("IN_PROGRESS", "In Progress"),
+                            ("COMPLETED", "Completed"),
+                            ("FAILED", "Failed"),
+                            ("DRAFT", "Draft"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("is_favorite", models.BooleanField(default=False)),
+                ("is_draft", models.BooleanField(default=True)),
+                ("share_link", models.URLField(blank=True)),
+                (
+                    "playback_session",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="songs",
+                        to="songs.playbacksession",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="songs",
+                        to="songs.user",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='SharedSong',
+            name="SharedSong",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('share_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('share_link', models.URLField(unique=True)),
-                ('shared_at', models.DateTimeField(auto_now_add=True)),
-                ('accessible_by_guest', models.BooleanField(default=False)),
-                ('song', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='shared_song', to='songs.song')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "share_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("share_link", models.URLField(unique=True)),
+                ("shared_at", models.DateTimeField(auto_now_add=True)),
+                ("accessible_by_guest", models.BooleanField(default=False)),
+                (
+                    "song",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="shared_song",
+                        to="songs.song",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Draft',
+            name="Draft",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('draft_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('saved_at', models.DateTimeField(auto_now_add=True)),
-                ('is_submitted', models.BooleanField(default=False)),
-                ('retention_policy', models.CharField(blank=True, max_length=255)),
-                ('song', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='drafts', to='songs.song')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "draft_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("saved_at", models.DateTimeField(auto_now_add=True)),
+                ("is_submitted", models.BooleanField(default=False)),
+                ("retention_policy", models.CharField(blank=True, max_length=255)),
+                (
+                    "song",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="drafts",
+                        to="songs.song",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-saved_at'],
+                "ordering": ["-saved_at"],
             },
         ),
         migrations.CreateModel(
-            name='SongPrompt',
+            name="SongPrompt",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('prompt_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('title', models.CharField(max_length=255)),
-                ('occasion', models.CharField(choices=[('BIRTHDAY', 'Birthday'), ('WEDDING', 'Wedding'), ('ANNIVERSARY', 'Anniversary'), ('GRADUATION', 'Graduation'), ('GENERAL', 'General')], max_length=20)),
-                ('mood_and_tone', models.CharField(choices=[('HAPPY', 'Happy'), ('SAD', 'Sad'), ('ROMANTIC', 'Romantic'), ('ENERGETIC', 'Energetic'), ('CALM', 'Calm')], max_length=20)),
-                ('singer_tone', models.CharField(choices=[('MALE_DEEP', 'Male Deep'), ('MALE_LIGHT', 'Male Light'), ('FEMALE_DEEP', 'Female Deep'), ('FEMALE_LIGHT', 'Female Light'), ('NEUTRAL', 'Neutral')], max_length=20)),
-                ('description', models.TextField(blank=True)),
-                ('song', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='prompt', to='songs.song')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "prompt_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "occasion",
+                    models.CharField(
+                        choices=[
+                            ("BIRTHDAY", "Birthday"),
+                            ("WEDDING", "Wedding"),
+                            ("ANNIVERSARY", "Anniversary"),
+                            ("GRADUATION", "Graduation"),
+                            ("GENERAL", "General"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "mood_and_tone",
+                    models.CharField(
+                        choices=[
+                            ("HAPPY", "Happy"),
+                            ("SAD", "Sad"),
+                            ("ROMANTIC", "Romantic"),
+                            ("ENERGETIC", "Energetic"),
+                            ("CALM", "Calm"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "singer_tone",
+                    models.CharField(
+                        choices=[
+                            ("MALE_DEEP", "Male Deep"),
+                            ("MALE_LIGHT", "Male Light"),
+                            ("FEMALE_DEEP", "Female Deep"),
+                            ("FEMALE_LIGHT", "Female Light"),
+                            ("NEUTRAL", "Neutral"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("description", models.TextField(blank=True)),
+                (
+                    "song",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="prompt",
+                        to="songs.song",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='AIGenerationRequest',
+            name="AIGenerationRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('request_id', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('submitted_at', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(choices=[('IN_PROGRESS', 'In Progress'), ('COMPLETED', 'Completed'), ('FAILED', 'Failed'), ('DRAFT', 'Draft')], default='IN_PROGRESS', max_length=20)),
-                ('error_message', models.TextField(blank=True)),
-                ('prompt', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='generation_request', to='songs.songprompt')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "request_id",
+                    models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+                ),
+                ("submitted_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("IN_PROGRESS", "In Progress"),
+                            ("COMPLETED", "Completed"),
+                            ("FAILED", "Failed"),
+                            ("DRAFT", "Draft"),
+                        ],
+                        default="IN_PROGRESS",
+                        max_length=20,
+                    ),
+                ),
+                ("error_message", models.TextField(blank=True)),
+                (
+                    "prompt",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="generation_request",
+                        to="songs.songprompt",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Library',
+            name="Library",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('filter_criteria', models.CharField(blank=True, max_length=500)),
-                ('total_count', models.PositiveIntegerField(default=0)),
-                ('songs', models.ManyToManyField(blank=True, related_name='libraries', to='songs.song')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='library', to='songs.user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("filter_criteria", models.CharField(blank=True, max_length=500)),
+                ("total_count", models.PositiveIntegerField(default=0)),
+                (
+                    "songs",
+                    models.ManyToManyField(
+                        blank=True, related_name="libraries", to="songs.song"
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="library",
+                        to="songs.user",
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'libraries',
+                "verbose_name_plural": "libraries",
             },
         ),
     ]
