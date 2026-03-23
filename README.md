@@ -1,4 +1,4 @@
-# AI Song Domain – Exercise 3
+# AI Song Domain
 
 Django domain layer implementation for an AI-powered song generation platform.
 
