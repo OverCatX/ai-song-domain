@@ -1,0 +1,18 @@
+from rest_framework.routers import DefaultRouter
+from .views import (
+    UserViewSet, SongViewSet, LibraryViewSet, SongPromptViewSet,
+    AIGenerationRequestViewSet, SharedSongViewSet,
+    PlaybackSessionViewSet, DraftViewSet,
+)
+
+router = DefaultRouter()
+router.register('users',               UserViewSet,                basename='user')
+router.register('songs',               SongViewSet,                basename='song')
+router.register('libraries',           LibraryViewSet,             basename='library')
+router.register('song-prompts',        SongPromptViewSet,          basename='song-prompt')
+router.register('generation-requests', AIGenerationRequestViewSet, basename='generation-request')
+router.register('shared-songs',        SharedSongViewSet,          basename='shared-song')
+router.register('playback-sessions',   PlaybackSessionViewSet,     basename='playback-session')
+router.register('drafts',              DraftViewSet,               basename='draft')
+
+urlpatterns = router.urls
